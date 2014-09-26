@@ -8,7 +8,7 @@ Installation
 
 Install python 2.7 if you don't already have it.
 
-Install pygame if you don't already have it. `sudo get-apt install pygame`
+Install pygame if you don't already have it. `sudo apt-get install pygame`
 
 Run main.py to play the game. Run server.py to host a game.
 
