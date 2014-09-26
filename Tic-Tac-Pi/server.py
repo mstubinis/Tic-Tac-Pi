@@ -18,7 +18,7 @@ def process(value):
     else:
         if "CONNECT" in value:
             print(value[8:] + " connected!")
-        else if "DISCONNECT" in value:
+        elif "DISCONNECT" in value:
             print(value[11:] + " disconnected!")
     #sleep(randint(1,9))    # emulating processing time
     sleep(1)

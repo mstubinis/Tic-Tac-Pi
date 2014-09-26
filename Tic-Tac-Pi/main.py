@@ -1,19 +1,32 @@
 import sys, pygame, resourceManager,client
 pygame.init()
-from gameObjects import MenuButton
+from gameObjects import MenuButton, TextField
 
 class Menu(object):
     def __init__(self,width,height):
+        
         self.title_image,self.title_image_rect = resourceManager.load_image("title.png",-1)
         self.single_player = MenuButton.MenuButton("Singleplayer",(width/2,height/2))
         self.multi_player = MenuButton.MenuButton("Multiplayer",(width/2,height/2+150))
+
+        self.server_text_field = TextField.TextField((width/2,height/2+50),14,80,"Server IP")
+        self.connect_button = MenuButton.MenuButton("Connect",(width/2,height/2+150))
+        
     def update(self,program):
-        self.single_player.update()
-        self.multi_player.update()
-        if self.single_player.is_clicked() == True:
-            program.state = "SinglePlayer"
-        if self.multi_player.is_clicked() == True:
-            program.state = "MENU_MultiplayerLobby"
+
+        if program.state == "MENU_Menu":
+            self.single_player.update()
+            self.multi_player.update()
+            if self.single_player.is_clicked() == True:
+                program.state = "SinglePlayer"
+            if self.multi_player.is_clicked() == True:
+                program.state = "MENU_MultiplayerLobby"
+        elif program.state == "MENU_MultiplayerLobby":
+            self.server_text_field.update()
+            self.connect_button.update()
+            if self.connect_button.is_clicked() == True:
+                program.client.connect_to_server(self.server_text_field.message)
+            
     def draw(self,program):
         
         if "MENU" in program.state:
@@ -23,7 +36,8 @@ class Menu(object):
             self.single_player.draw(program.screen)
             self.multi_player.draw(program.screen)
         elif program.state == "MENU_MultiplayerLobby":
-            pass
+            self.server_text_field.draw(program.screen)
+            self.connect_button.draw(program.screen)
         else:
             pass
 

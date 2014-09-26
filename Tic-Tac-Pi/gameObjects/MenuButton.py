@@ -39,4 +39,6 @@ class MenuButton(pygame.sprite.Sprite):
     def draw(self,screen):
         if self.mouseOver == True:
             pygame.draw.rect(screen,(0,255,0),self.rect)
+        else:
+            pygame.draw.rect(screen,(125,125,125),self.rect)
         screen.blit(self.text, self.rect)
