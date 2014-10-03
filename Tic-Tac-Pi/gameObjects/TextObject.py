@@ -15,11 +15,12 @@ class TextObject(pygame.sprite.Sprite):
 
         self.rect.midtop = pos
 
-    def is_clicked(self):
+    def is_clicked(self,events):
         if self.is_mouse_over() == True:
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    return True
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        return True
         return False
     
     def is_mouse_over(self):

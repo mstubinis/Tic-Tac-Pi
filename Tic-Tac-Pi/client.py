@@ -14,13 +14,23 @@ class Client(object):
         self.client = None
         self.connected = False
         self.connection_destination = ""
-    def connect_to_server(self,errorButton,server):
+        self.username = ""
+    def connect_to_server(self,errorButton,server,username):
+        if username == "":
+            error = "Please enter your name"
+            errorButton.update_message(error)
+            return
+        if server == "":
+            error = "Please enter the server ip"
+            errorButton.update_message(error)
+            return
         try:
             if self.connected == False:
                 self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.connection_destination = server
+                self.username = username
                 self.client.connect((self.connection_destination, 6119))
-                self.client.sendall("_CONNECT" + socket.gethostname())
+                self.client.sendall("_CONNECT" + username)
                 self.print_response(errorButton)
                 self.connected = True
             else:
@@ -30,7 +40,7 @@ class Client(object):
             pass
     def disconnect_from_server(self,error=False):
         if error == False:
-            self.client.sendall("_DISCONNECT" + socket.gethostname())
+            self.client.sendall("_DISCONNECT" + username)
         self.client.shutdown(socket.SHUT_RDWR)
         self.client.close()
         self.connected = False
@@ -50,12 +60,12 @@ class Client(object):
             self.disconnect_from_server(True)
             pass
         
-    def update(self,errorButton):
+    def update(self,errorButton,events):
         self.timer += 1
         if self.timer > 50:
             self.send_message(".",errorButton)
             self.timer = 0
-        for event in pygame.event.get():
+        for event in events:
             if event.type == pygame.KEYDOWN:
                 try:
                     self.send_message("hi",errorButton)

@@ -26,14 +26,6 @@ class TextField(pygame.sprite.Sprite):
         self.rect.midtop = pos
         self.rect_name.midtop = pos
         self.rect_name.y -= self.font.size("X")[1]
-
-    def is_clicked(self):
-        if self.is_mouse_over() == True:
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        return True
-        return False
     
     def is_mouse_over(self):
         mousePos = pygame.mouse.get_pos()
@@ -63,20 +55,29 @@ class TextField(pygame.sprite.Sprite):
         else:
             pass
     
-    def update(self):
-        if self.is_clicked() == True:
-            self.selected = True
+    def update(self,events):
+
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if self.is_mouse_over() == True:
+                        self.selected = True
+                    else:
+                        self.selected = False
+            elif event.type == pygame.KEYDOWN:
+                try:
+                    if self.selected == True:
+                        self.update_message(str(chr(event.key)))
+                except:
+                    pass
+
+
+            
         if self.selected == True:
             self.timer += 1
             if self.timer > 20:
                 self.timer = 0
                 self.blink = not self.blink
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    try:
-                        self.update_message(str(chr(event.key)))
-                    except:
-                        pass
             
 
     def draw(self,screen):

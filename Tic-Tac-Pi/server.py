@@ -7,36 +7,11 @@ def GetIp():
     ip = json.load(urlopen('http://httpbin.org/ip'))['origin']
     return ip
 
-def process(conn,data):
-    if not data:
-        return
-    if data[0] == "_":
-        if "_CONNECT" in data:
-            print(data[8:] + " connected!")
-            respond(conn,"I got your connection, " + data[8:])
-        elif "_DISCONNECT" in data:
-            print(data[11:] + " disconnected!")
-    else:
-        if data != ".":
-            print(data)
-            respond(conn,data)
-
-def respond(conn,data):
-    if not data:
-        return
-    try:
-        conn.sendall(data)
-    except:#client disconnect
-        pass
-
-def client_thread(conn):
-    while True:
-        try:
-            data = conn.recv(2048)
-            process(conn,data)
-        except:#client disconnect
-            pass
-
+class WaitingClient():
+    def __init__(self,conn,addr):
+        self.conn = conn
+        self.addr = addr
+        
 class Server(object):
     def __init__(self):
         self.host = GetIp()
@@ -46,11 +21,26 @@ class Server(object):
         print("Hosting on IP: " + str(self.host) + "\r\nListening on port: " + str(self.port)+ "\r\n")
         self.s.listen(5)
 
+        self.waiting_clients = []
         self.clients = {}
         self.clients[self.host] = self.s
+
+    def process(self,data,conn):
+        if not data:
+            return
+        if data[0] == "_":
+            if "_CONNECT" in data:
+                print(data[8:] + " connected!")
+
+
+                    
+            elif "_DISCONNECT" in data:
+                print(data[11:] + " disconnected!")
+        else:
+            print(data)
         
     def send_message(self,client,conn,message):
-        conn.sendall(conn.getpeername()[0] + ": " + message)
+        conn.sendall(client + ": " + message)
         
     def main(self):
         while True:
@@ -59,8 +49,8 @@ class Server(object):
                 if x != None:
                     if x == self.s:
                         try:
-                            csock, addr = self.s.accept()
-                            self.clients[addr[0]] = csock
+                            conn, addr = self.s.accept()
+                            self.clients[addr[0]] = conn
                         except socket.error, msg:
                             print("Socket error: " + str(msg))
                             pass
@@ -69,7 +59,7 @@ class Server(object):
                         data = x.recv(4096)
                         if data:
                             if not "." in data:
-                                print(data)
+                                self.process(data,x)
                             for key,value in self.clients.iteritems():
                                 if value is not self.s:
                                     if value != None:
