@@ -1,6 +1,11 @@
 import socket,sys,select,thread
 from time import sleep
 
+def removekey(d, key):
+    r = dict(d)
+    del r[key]
+    return r
+
 def GetIp():
     import json
     from urllib2 import urlopen
@@ -29,11 +34,18 @@ class Server(object):
         if not data:
             return
         if data[0] == "_":
+
+            if len(self.waiting_clients) > 0:
+                for i in self.waiting_clients:
+                    if i == conn.getpeername()[0]:
+                        self.clients = removekey(self.clients,i)
+                        self.clients[data[8:]] = conn
+                        self.waiting_clients.remove(i)
+                        for key,value in self.clients.iteritems():
+                            print(key)
+            
             if "_CONNECT" in data:
-                print(data[8:] + " connected!")
-
-
-                    
+                print(data[8:] + " connected!")               
             elif "_DISCONNECT" in data:
                 print(data[11:] + " disconnected!")
         else:
@@ -51,6 +63,7 @@ class Server(object):
                         try:
                             conn, addr = self.s.accept()
                             self.clients[addr[0]] = conn
+                            self.waiting_clients.append(addr[0])
                         except socket.error, msg:
                             print("Socket error: " + str(msg))
                             pass

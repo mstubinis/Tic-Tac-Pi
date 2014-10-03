@@ -61,13 +61,13 @@ class Client(object):
             pass
         
     def update(self,errorButton,events):
-        self.timer += 1
-        if self.timer > 50:
-            self.send_message(".",errorButton)
-            self.timer = 0
+        #self.timer += 1
+        #if self.timer > 50:
+            #self.send_message(".",errorButton)
+            #self.timer = 0
         for event in events:
             if event.type == pygame.KEYDOWN:
                 try:
-                    self.send_message("hi",errorButton)
+                    self.send_message(self.username,errorButton)
                 except:
                     pass
