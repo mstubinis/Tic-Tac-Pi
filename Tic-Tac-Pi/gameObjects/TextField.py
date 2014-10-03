@@ -5,7 +5,6 @@ import resourceManager
 class TextField(pygame.sprite.Sprite):
     def __init__(self,pos,maxChars,fontSize,buttonName):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-        self.mouseOver = False
         self.selected = False
         self.blink = False
         self.timer = 0
@@ -26,16 +25,16 @@ class TextField(pygame.sprite.Sprite):
         
         self.rect.midtop = pos
         self.rect_name.midtop = pos
-        self.rect_name.y -= self.font.size("X")[1] + 8
+        self.rect_name.y -= self.font.size("X")[1]
 
     def is_clicked(self):
-        if pygame.mouse.get_pressed()[0] == 1:
-            if self.is_mouse_over() == True:
-                self.selected = True
-                return True
-            else:
-                self.selected = False
+        if self.is_mouse_over() == True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        return True
         return False
+    
     def is_mouse_over(self):
         mousePos = pygame.mouse.get_pos()
         if mousePos[0] < self.rect.x:
@@ -58,29 +57,26 @@ class TextField(pygame.sprite.Sprite):
                 self.message = self.message[:-1]
                 self.text = self.font.render(self.message, 1,(255,255,255))
         elif ord(message) == 13:#enter key
-            if self.selected == True:
-                self.blink = False
-                self.timer = 0
-                self.selected = False
+            self.blink = False
+            self.timer = 0
+            self.selected = False
+        else:
+            pass
     
     def update(self):
-        self.is_clicked()
-        if self.is_mouse_over() == True:
-            self.mouseOver = True
-        else:
-            self.mouseOver = False
-            
+        if self.is_clicked() == True:
+            self.selected = True
         if self.selected == True:
             self.timer += 1
             if self.timer > 20:
                 self.timer = 0
                 self.blink = not self.blink
-            events = pygame.event.get()
-            for event in events:
+            for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     try:
                         self.update_message(str(chr(event.key)))
                     except:
+                        print("no")
                         pass
             
 

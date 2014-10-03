@@ -1,16 +1,18 @@
 import sys, pygame, resourceManager,client
 pygame.init()
-from gameObjects import MenuButton, TextField
+from gameObjects import MenuButton, TextField, TextObject
 
 class Menu(object):
     def __init__(self,width,height):
         
         self.title_image,self.title_image_rect = resourceManager.load_image("title.png",-1)
-        self.single_player = MenuButton.MenuButton("Singleplayer",(width/2,height/2))
-        self.multi_player = MenuButton.MenuButton("Multiplayer",(width/2,height/2+150))
+        self.single_player = MenuButton.MenuButton("Singleplayer",(width/2,height-260),85)
+        self.multi_player = MenuButton.MenuButton("Multiplayer",(width/2,height-180),85)
 
-        self.server_text_field = TextField.TextField((width/2,height/2+50),14,80,"Server IP")
-        self.connect_button = MenuButton.MenuButton("Connect",(width/2,height/2+150))
+        self.server_text_field = TextField.TextField((width/2,height-230),14,50,"Server IP")
+        self.connect_button = MenuButton.MenuButton("Connect",(width/2,height-180),85)
+
+        self.error_message = TextObject.TextObject((width/2,height-100),75,(255,0,0),"")
         
     def update(self,program):
 
@@ -25,12 +27,13 @@ class Menu(object):
             self.server_text_field.update()
             self.connect_button.update()
             if self.connect_button.is_clicked() == True:
-                program.client.connect_to_server(self.server_text_field.message)
+                program.client.connect_to_server(self.error_message,self.server_text_field.message)
             
     def draw(self,program):
         
         if "MENU" in program.state:
             program.screen.blit(self.title_image,self.title_image_rect)
+            self.error_message.draw(program.screen)
 
         if program.state == "MENU_Menu":
             self.single_player.draw(program.screen)
@@ -52,10 +55,10 @@ class Program(object):
         self.state = "MENU_Menu"
         self.menu = Menu(self.width,self.height)
         self.client = client.Client()
-        self.server = "129.21.93.250"
     def update(self):
         self.screen.fill(self.color)
         self.menu.update(self)
+        #self.client.update(self.menu.error_message)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.client.disconnect_from_server()
