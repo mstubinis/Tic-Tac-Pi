@@ -16,8 +16,9 @@ class MenuButton(pygame.sprite.Sprite):
     def is_clicked(self):
         if self.is_mouse_over() == True:
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    return True
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        return True
         return False
     def is_mouse_over(self):
         mousePos = pygame.mouse.get_pos()

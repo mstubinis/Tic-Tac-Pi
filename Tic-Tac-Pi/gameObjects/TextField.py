@@ -76,7 +76,6 @@ class TextField(pygame.sprite.Sprite):
                     try:
                         self.update_message(str(chr(event.key)))
                     except:
-                        print("no")
                         pass
             
 

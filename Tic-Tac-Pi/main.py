@@ -12,7 +12,7 @@ class Menu(object):
         self.server_text_field = TextField.TextField((width/2,height-230),14,50,"Server IP")
         self.connect_button = MenuButton.MenuButton("Connect",(width/2,height-180),85)
 
-        self.error_message = TextObject.TextObject((width/2,height-100),75,(255,0,0),"")
+        self.error_message = TextObject.TextObject((width/2,height-100),50,(255,0,0),"")
         
     def update(self,program):
 
@@ -58,7 +58,7 @@ class Program(object):
     def update(self):
         self.screen.fill(self.color)
         self.menu.update(self)
-        #self.client.update(self.menu.error_message)
+        self.client.update(self.menu.error_message)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.client.disconnect_from_server()
