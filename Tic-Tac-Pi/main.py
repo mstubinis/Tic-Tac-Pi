@@ -68,7 +68,7 @@ class Program(object):
         self.client.update(self.menu.error_message,listOfEvents)
         for event in listOfEvents:
             if event.type == pygame.QUIT:
-                self.client.disconnect_from_server()
+                self.client.disconnect_from_server(self.menu.error_message)
                 pygame.quit()
                 sys.exit(1)
     def render(self):

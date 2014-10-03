@@ -29,30 +29,31 @@ class Client(object):
                 self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.connection_destination = server
                 self.username = username
+
                 self.client.connect((self.connection_destination, 6119))
-                self.client.sendall("_CONNECT" + username)
-                self.print_response(errorButton)
+                self.send_message("_CONNECT_" + self.username,errorButton)
+                
                 self.connected = True
             else:
                 error = "Already connected to a server!"
                 errorButton.update_message(error)
         except:
             pass
-    def disconnect_from_server(self,error=False):
+    def disconnect_from_server(self,errorButton,error=False):
         if error == False:
-            self.client.sendall("_DISCONNECT" + username)
+            self.send_message("_DISCONNECT_" + self.username,errorButton)
         self.client.shutdown(socket.SHUT_RDWR)
         self.client.close()
         self.connected = False
 
     def send_message(self,message,errorButton):
-        if self.client != None:
+        if self.client != None:       
             self.client.sendall(message)
             self.print_response(errorButton)
         
     def print_response(self,errorButton):
         try:
-            data = self.client.recv(4096)
+            data = self.client.recv(1024)
             print(data)
         except:
             error = "Server was shut down"
@@ -61,10 +62,10 @@ class Client(object):
             pass
         
     def update(self,errorButton,events):
-        #self.timer += 1
-        #if self.timer > 50:
-            #self.send_message(".",errorButton)
-            #self.timer = 0
+        self.timer += 1
+        if self.timer > 50:
+            self.send_message(".",errorButton)
+            self.timer = 0
         for event in events:
             if event.type == pygame.KEYDOWN:
                 try:

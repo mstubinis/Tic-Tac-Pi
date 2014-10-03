@@ -39,20 +39,21 @@ class Server(object):
                 for i in self.waiting_clients:
                     if i == conn.getpeername()[0]:
                         self.clients = removekey(self.clients,i)
-                        self.clients[data[8:]] = conn
+                        self.clients[data[9:]] = conn
                         self.waiting_clients.remove(i)
-                        for key,value in self.clients.iteritems():
-                            print(key)
             
-            if "_CONNECT" in data:
-                print(data[8:] + " connected!")               
-            elif "_DISCONNECT" in data:
-                print(data[11:] + " disconnected!")
+            if "_CONNECT_" in data:
+                print(data[9:] + " connected!")               
+            elif "_DISCONNECT_" in data:
+                print(data[12:] + " disconnected!")
         else:
             print(data)
+        sleep(0.2)
         
-    def send_message(self,client,conn,message):
-        conn.sendall(client + ": " + message)
+    def send_message(self,username,client_socket,data):
+        #client_socket.sendall(username + ": " + data)
+        client_socket.sendall(data)
+        sleep(0.2)
         
     def main(self):
         while True:
@@ -64,26 +65,19 @@ class Server(object):
                             conn, addr = self.s.accept()
                             self.clients[addr[0]] = conn
                             self.waiting_clients.append(addr[0])
+                            #self.clients[addr[0]] = thread.start_new_thread(client_thread ,(conn,)) 
                         except socket.error, msg:
                             print("Socket error: " + str(msg))
                             pass
 
                     else:  
-                        data = x.recv(4096)
+                        data = x.recv(1024)
                         if data:
                             if not "." in data:
                                 self.process(data,x)
-                            for key,value in self.clients.iteritems():
-                                if value is not self.s:
-                                    if value != None:
-                                        self.send_message(key,value,data)
-                    #try:
-                        #conn, addr = self.s.accept()
-                        #if not addr[0] in self.clients:
-                            #self.clients[addr[0]] = thread.start_new_thread(client_thread ,(conn,))                    
-                    #except socket.error, msg:
-                        #print("Socket error: " + str(msg))
-                        #pass
+                            for username,client_socket in self.clients.iteritems():
+                                if client_socket != None and client_socket is not self.s:
+                                    self.send_message(username,client_socket,data)
         sys.exit(1)
 
 if __name__ == "__main__":
