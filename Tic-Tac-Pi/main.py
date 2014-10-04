@@ -20,6 +20,9 @@ class Menu(object):
         self.title_image,self.title_image_rect = resourceManager.load_image("title.png",-1)
         self.single_player = MenuButton.MenuButton("Singleplayer",(width/2,height-260),60)
         self.multi_player = MenuButton.MenuButton("Multiplayer",(width/2,height-180),60)
+        self.exit_button = MenuButton.MenuButton("Exit",(width/2,height-100),60)
+
+        self.back_button = MenuButton.MenuButton("Back",(100,height-100),60)
 
         self.server_text_field = TextField.TextField((width/2-150,height-230),14,35,"Server IP")
         self.username_text_field = TextField.TextField((width/2+150,height-230),10,35,"Your Name")
@@ -27,40 +30,60 @@ class Menu(object):
         self.connect_button = MenuButton.MenuButton("Connect",(width/2,height-180),60)
 
         self.error_message = TextObject.TextObject((width/2,height-100),35,(255,0,0),"")
+
+    def change_state(self,program,newState):
+        program.last_state = program.state
+        program.state = newState
         
     def update(self,program,events):
 
         if program.state == "MENU_Menu":
             self.single_player.update()
             self.multi_player.update()
+            self.exit_button.update()
             if self.single_player.is_clicked(events) == True:
                 
                 p1 = Player.Player("Human","X","Player")
                 p2 = Player.Player("AI","O","Computer")
                 program.game.setplayers(p1,p2)
                 
-                program.state = "SinglePlayer"
+                self.change_state(program,"SinglePlayer")
                 
             elif self.multi_player.is_clicked(events) == True:
                 
-                program.state = "MENU_MultiplayerLobby"
-                
+                self.change_state(program,"MENU_MultiplayerLobby")
+
+            elif self.exit_button.is_clicked(events) == True:
+
+                sys.exit(1)
+           
         elif program.state == "MENU_MultiplayerLobby":
             self.server_text_field.update(events)
             self.username_text_field.update(events)
             self.connect_button.update()
+            self.back_button.update()
+            
             if self.connect_button.is_clicked(events) == True:
+                
                 program.client.connect_to_server(self.error_message,self.server_text_field.message,self.username_text_field.message)
+
+            elif self.back_button.is_clicked(events) == True:
+                thisState = program.state
+                program.state = program.last_state
+                program.last_state = thisState
             
     def draw(self,program):
         
         if "MENU" in program.state:
             program.screen.blit(self.title_image,self.title_image_rect)
             self.error_message.draw(program.screen)
+            if program.state != "MENU_Menu":
+                self.back_button.draw(program.screen)
 
         if program.state == "MENU_Menu":
             self.single_player.draw(program.screen)
             self.multi_player.draw(program.screen)
+            self.exit_button.draw(program.screen)
         elif program.state == "MENU_MultiplayerLobby":
             self.server_text_field.draw(program.screen)
             self.username_text_field.draw(program.screen)
@@ -76,7 +99,10 @@ class Program(object):
 
         self.screen = pygame.display.set_mode((self.width,self.height))
         self.clock = pygame.time.Clock()
+        
         self.state = "MENU_Menu"
+        self.last_state = "MENU_Menu"
+        
         self.menu = Menu(self.width,self.height)
         self.game = Game(self.width,self.height)
         self.client = client.Client()

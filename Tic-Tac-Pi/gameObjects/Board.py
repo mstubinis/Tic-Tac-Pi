@@ -45,7 +45,7 @@ class BoardSpot(pygame.sprite.Sprite):
 
     def draw(self,screen,x,o):
         if self.mouseOver == True:
-            pygame.draw.rect(screen,(0,185,0),self.rect)
+            pygame.draw.rect(screen,(115,205,205),self.rect)
         else:
             pass
         if self.token != "":
