@@ -1,7 +1,19 @@
 import sys, pygame, resourceManager,client
 pygame.init()
-from gameObjects import MenuButton, TextField, TextObject
+from gameObjects import MenuButton, TextField, TextObject, Board, Player
 
+class Game(object):
+    def __init__(self,windowWidth,windowHeight,player1=None,player2=None):
+        self.board = Board.Board(player1,player2,windowWidth,windowHeight)
+    def setplayers(self,p1,p2):
+        self.board.setplayers(p1,p2)
+    def update(self,program,events):
+        if not "MENU" in program.state:
+            self.board.update(events)
+    def draw(self,program):
+        if not "MENU" in program.state:
+            self.board.draw(program.screen)
+    
 class Menu(object):
     def __init__(self,width,height):
         
@@ -22,9 +34,17 @@ class Menu(object):
             self.single_player.update()
             self.multi_player.update()
             if self.single_player.is_clicked(events) == True:
+                
+                p1 = Player.Player("Human","X","Player")
+                p2 = Player.Player("AI","O","Computer")
+                program.game.setplayers(p1,p2)
+                
                 program.state = "SinglePlayer"
-            if self.multi_player.is_clicked(events) == True:
+                
+            elif self.multi_player.is_clicked(events) == True:
+                
                 program.state = "MENU_MultiplayerLobby"
+                
         elif program.state == "MENU_MultiplayerLobby":
             self.server_text_field.update(events)
             self.username_text_field.update(events)
@@ -58,6 +78,7 @@ class Program(object):
         self.clock = pygame.time.Clock()
         self.state = "MENU_Menu"
         self.menu = Menu(self.width,self.height)
+        self.game = Game(self.width,self.height)
         self.client = client.Client()
     def update(self):
 
@@ -65,6 +86,7 @@ class Program(object):
         
         self.screen.fill(self.color)
         self.menu.update(self,listOfEvents)
+        self.game.update(self,listOfEvents)
         self.client.update(self.menu.error_message,listOfEvents)
         for event in listOfEvents:
             if event.type == pygame.QUIT:
@@ -73,6 +95,7 @@ class Program(object):
                 sys.exit(1)
     def render(self):
         self.menu.draw(self)
+        self.game.draw(self)
         pygame.display.flip()
     def run(self):
         self.clock.tick(60)
