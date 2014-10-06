@@ -7,6 +7,10 @@ import sys
 def GetIp():
     return json.load(urlopen('http://httpbin.org/ip'))['origin']
 
+def removekey(dictionary, key):
+    r = dict(dictionary)
+    del r[key]
+    return r
 
 class ReplyThread(Thread):
     def __init__(self,server):
@@ -29,25 +33,26 @@ class ProcessThread(Thread):
         super(ProcessThread, self).__init__()
         self.running = True
         self.q = Queue.Queue()
-        self.client_socket = None
+        self.client_thread = None
         self.server = server
-    def add(self, data, conn):
+    def add(self, data, clientThread):
         self.q.put(data)
-        self.client_socket = conn
+        self.client_thread = clientThread
     def stop(self):
         self.running = False
     def run(self):
         while self.running:
             if not self.q.empty():
                 value = self.q.get(block=True, timeout=1)
-                self.server.process(value,self.client_socket)
-                self.client_socket = None
+                self.server.process(value,self.client_thread)
+                self.client_thread = None
 
 class ClientThread(Thread):
-    def __init__(self,server,socket):
+    def __init__(self,server,socket,address):
         super(ClientThread, self).__init__()
         self.running = True
         self.conn = socket
+        self.address = address
         self.server = server
     def stop(self):
         self.running = False 
@@ -56,9 +61,11 @@ class ClientThread(Thread):
             try:
                 data = self.conn.recv(1024)
                 if data:
-                    self.server.process_thread.add(data,self.conn)
+                    self.server.process_thread.add(data,self)
             except socket.error, msg:
                 print("Socket error! %s" % msg)
+                self.running = False
+                self.stop()
                 pass
         self.conn.close()
     
@@ -78,20 +85,32 @@ class Server():
         
         self.s.listen(5)                 # Now wait for client connection.
 
-        self.clients = []
+        self.clients = {}
 
     def broadcast(self,message,source_socket=None,tosender=False):
         if tosender == True and source_socket != None:
             source_socket.send(message)
-        for i in self.clients:
-            if i.conn is not source_socket:
-                i.conn.send(message)
+        for key,value in self.clients.iteritems():
+            if value.conn is not source_socket:
+                value.conn.send(message)
                 
-    def process(self,data,source_socket):
+    def process(self,data,client_thread):
         if data[0] == "_":
             if "_CONNECT_" in data:
                 print(data[9:] + " connected to the server!")
                 self.reply_thread.add("Welcome to the server " + data[9:] + "!")
+                
+                address_copy = client_thread.address
+                client_thread.address = str(data[9:])
+                self.clients[str(data[9:])] = client_thread
+                self.clients = removekey(self.clients,address_copy)
+
+                message = "\nConnected Clients: ["
+                for key,value in self.clients.iteritems():
+                    message += str(key)+","
+                message = message[:-1]
+                message += "]\n"
+                print(message)
         else:
             print(data)
             self.reply_thread.add(data)
@@ -100,11 +119,11 @@ class Server():
     def main(self):  
         while True:
             try:
-                conn, addr = self.s.accept()
+                conn, address = self.s.accept()
 
-                thread = ClientThread(self,conn)
+                thread = ClientThread(self,conn,address[0])
                 thread.start()
-                self.clients.append(thread)
+                self.clients[address[0]] = thread
                 
             except socket.error, msg:
                 print("Socket error! %s" % msg)
