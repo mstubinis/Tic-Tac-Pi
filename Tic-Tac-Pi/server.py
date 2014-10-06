@@ -52,6 +52,7 @@ class ClientThread(Thread):
         super(ClientThread, self).__init__()
         self.running = True
         self.conn = socket
+        self.username = address
         self.address = address
         self.server = server
     def stop(self):
@@ -101,7 +102,7 @@ class Server():
                 self.reply_thread.add("Welcome to the server " + data[9:] + "!")
                 
                 address_copy = client_thread.address
-                client_thread.address = str(data[9:])
+                client_thread.username = str(data[9:])
                 self.clients[str(data[9:])] = client_thread
                 self.clients = removekey(self.clients,address_copy)
 
