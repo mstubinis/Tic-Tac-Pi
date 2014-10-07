@@ -1,3 +1,4 @@
+import pygame, Player, random, TextObject
 from pygame.locals import *
 import resourceManager, TextObject
 from time import sleep
