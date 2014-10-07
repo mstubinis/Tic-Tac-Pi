@@ -137,28 +137,52 @@ class Board(object):
         self.checkforwin()
 
     def doaimove(self):# mtubinis will place computer AI here later on
-        
-        # for now, can you just make it so the computer will choose
-        # a random empty spot to place his token at?
-        # just pick a random spot from self.spots, and call spot.set_token(self)
-        # you can check if a spot is empty if: spot.token == ""
-
         for spot in self.spots:
-            # place checking code here, and don't forget to remove "pass" right below this comment line
-            pass
-        
+            if spot.token == "":
+                spot.set_token(self)
+                break
         sleep(1)
 
-    # this method will check to see if either of the 3 rows, columns, or diagonals are a win condition.
-    # If not and all the spots on the board are filled,then it will be a tie. Use the commented out code when you determine if
-    # player1 wins, player2 wins, or if the game is a tie
     def checkforwin(self):
-        
-        winner = "" # set this variable to the player that won the game, use "Player 1" for player 1,
-                    # "Player 2" for player 2, and "None" for a tie game
-        
-        # put in winning checking code here
 
+        row1 = [self.spots[0],self.spots[3],self.spots[6]]
+        row2 = [self.spots[1],self.spots[4],self.spots[7]]
+        row3 = [self.spots[2],self.spots[5],self.spots[8]]
+
+        col1 = [self.spots[0],self.spots[1],self.spots[2]]
+        col2 = [self.spots[3],self.spots[4],self.spots[5]]
+        col3 = [self.spots[6],self.spots[7],self.spots[8]]
+
+        diag1 = [self.spots[0],self.spots[4],self.spots[8]]
+        diag2 = [self.spots[6],self.spots[4],self.spots[2]]
+
+        conditons = [row1,row2,row3,col1,col2,col3,diag1,diag2]
+        
+        winner = ""
+        for i in conditons:
+            count = 0
+            win = True
+            winningToken = "None"
+            for j in i:
+                if count == 0:
+                    winningToken  = j.token
+                else:
+                    if j.token != winningToken: 
+                        win = False
+                        break
+                count += 1
+            if win == True:
+                if winningToken != "None":
+                    if self.player1.token == winningToken:
+                        winner = "Player 1"
+                    else:
+                        winner = "Player 2"
+        count1 = 0
+        for i in self.spots:
+            if i.token != "":
+                count1 += 1
+        if count1 >= 8:
+            winner = "None"
         
         if winner == "Player 1":
             self.currentPlayerTextObject.update_message(self.player1.name + " wins!")
