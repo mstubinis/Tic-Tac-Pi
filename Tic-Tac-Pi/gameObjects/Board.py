@@ -1,4 +1,3 @@
-import pygame, Player, random, TextObject
 from pygame.locals import *
 import resourceManager, TextObject
 from time import sleep
@@ -130,7 +129,7 @@ class Board(object):
                                     if self.currentPlayer.name == self.username:
                                         i.set_token(self)
                     
-        elif self.currentPlayer.type == "Computer":
+        elif self.currentPlayer.type == "AI":
             # this method is called if it is the computer's turn
             self.doaimove()
         # after every move, check to see if any of the players have won, or if the game ended in a tie
@@ -141,6 +140,8 @@ class Board(object):
             if spot.token == "":
                 spot.set_token(self)
                 break
+	    else:
+                pass
         sleep(1)
 
     def checkforwin(self):
@@ -175,15 +176,15 @@ class Board(object):
                 if winningToken != "None":
                     if self.player1.token == winningToken:
                         winner = "Player 1"
-                    else:
+                    elif self.player2.token == winningToken:
                         winner = "Player 2"
         count1 = 0
         for i in self.spots:
             if i.token != "":
                 count1 += 1
-        if count1 >= 8:
+        if count1 >= 9:
             winner = "None"
-        
+        print(winner)
         if winner == "Player 1":
             self.currentPlayerTextObject.update_message(self.player1.name + " wins!")
             self.gameOver = True
