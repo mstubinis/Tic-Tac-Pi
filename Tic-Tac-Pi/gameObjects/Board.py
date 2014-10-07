@@ -185,7 +185,6 @@ class Board(object):
                 count1 += 1
         if count1 >= 9:
             winner = "None"
-        print(winner)
         if winner == "Player 1":
             self.currentPlayerTextObject.update_message(self.player1.name + " wins!")
             self.gameOver = True
