@@ -4,13 +4,32 @@ import sys
 from pygame.locals import *
 pygame.init()
 
+def parse_message(message):
+    messageList = []
+    count = 0
+    part = ''
+    for char in message:
+
+        if count != 0:
+            if char == "_" or char == "|":
+                messageList.append(part)
+                part = ''
+            else:
+                part += char
+                if count == len(message) - 1:
+                    messageList.append(part)
+                    part = ''
+        count += 1
+            
+    return messageList
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     try:
         image = pygame.image.load(fullname)
-    except pygame.error, message:
-        print 'Cannot load image:', name
-        raise SystemExit, message
+    except pygame.error as message:
+        print('Cannot load image: ' + str(name))
+        raise SystemExit,message
     image = image.convert_alpha()
     if colorkey is not None:
         if colorkey is -1:
@@ -26,7 +45,7 @@ def load_sound(name):
     fullname = os.path.join('data', name)
     try:
         sound = pygame.mixer.Sound(fullname)
-    except pygame.error, message:
-        print 'Cannot load sound:', wav
+    except pygame.error as message:
+        print('Cannot load sound: ' + str(wav))
         raise SystemExit, message
     return sound

@@ -50,7 +50,7 @@ class Menu(object):
                 self.change_state(program,"SinglePlayer")
                 
             elif self.multi_player.is_clicked(events) == True:
-                
+        
                 self.change_state(program,"MENU_MultiplayerLobby")
 
             elif self.exit_button.is_clicked(events) == True:
@@ -64,8 +64,15 @@ class Menu(object):
             self.back_button.update()
             
             if self.connect_button.is_clicked(events) == True:
-                
-                program.client.connect_to_server(self.error_message,self.server_text_field.message,self.username_text_field.message)
+
+                result = program.client.connect_to_server(self.error_message,self.server_text_field.message,self.username_text_field.message)
+
+                if result == True:
+                    p1 = Player.Player("Human","X","Player 1")
+                    p2 = Player.Player("Human","O","Player 2")
+                    program.game.setplayers(p1,p2)
+                    
+                    self.change_state(program,"MultiPlayer")
 
             elif self.back_button.is_clicked(events) == True:
                 thisState = program.state
@@ -102,7 +109,7 @@ class Program(object):
         
         self.state = "MENU_Menu"
         self.last_state = "MENU_Menu"
-        
+  
         self.menu = Menu(self.width,self.height)
         self.game = Game(self.width,self.height)
         self.client = client.Client()

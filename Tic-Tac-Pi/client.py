@@ -24,8 +24,8 @@ class ClientThreadSend(Thread):
                 if not self.q.empty():
                     message = self.q.get(block=True, timeout=1)
                     self.conn.send(message)
-            except socket.error, msg:
-                print("Socket error! %s" % msg)
+            except socket.error as msg:
+                print("Socket error!: " +  str(msg))
                 pass
         self.conn.close()
 class ClientThreadRecieve(Thread):
@@ -43,8 +43,8 @@ class ClientThreadRecieve(Thread):
             try:
                 data = self.conn.recv(1024)
                 print(data)
-            except socket.error, msg:
-                print("Socket error! %s" % msg)
+            except socket.error as msg:
+                print("Socket error!: " + str(msg))
                 pass
         self.conn.close()
         
@@ -60,11 +60,11 @@ class Client(object):
         if username == "":
             error = "Please enter your name"
             errorButton.update_message(error)
-            return
+            return False
         if server == "":
             error = "Please enter the server ip"
             errorButton.update_message(error)
-            return
+            return False
         try:
             if self.connected == False:
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -82,11 +82,13 @@ class Client(object):
                 self.send_message("_CONNECT_" + self.username,errorButton)
                 
                 self.connected = True
+                return True
             else:
                 error = "Already connected to a server!"
                 errorButton.update_message(error)
+                return False
         except:
-            pass
+            return False
     def disconnect_from_server(self,errorButton,error=False):
         if error == False:
             self.send_message("_DISCONNECT_" + self.username,errorButton)

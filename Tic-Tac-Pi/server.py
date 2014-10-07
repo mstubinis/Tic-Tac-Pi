@@ -63,8 +63,8 @@ class ClientThread(Thread):
                 data = self.conn.recv(1024)
                 if data:
                     self.server.process_thread.add(data,self)
-            except socket.error, msg:
-                print("Socket error! %s" % msg)
+            except socket.error as msg:
+                print("Socket error!: " + str(msg))
                 self.running = False
                 self.stop()
                 pass
@@ -126,8 +126,8 @@ class Server():
                 thread.start()
                 self.clients[address[0]] = thread
                 
-            except socket.error, msg:
-                print("Socket error! %s" % msg)
+            except socket.error as msg:
+                print("Socket error!: " + str(msg))
                 pass
         self.process_thread.stop()
         self.process_thread.join()
