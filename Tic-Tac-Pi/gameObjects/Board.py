@@ -1,4 +1,4 @@
-import pygame, Player, random, TextObject
+import pygame, Player, random, TextObject, MenuButton
 from pygame.locals import *
 import resourceManager, TextObject
 from time import sleep
@@ -33,6 +33,7 @@ class BoardSpot(pygame.sprite.Sprite):
             else:
                 board.currentPlayer = board.player1
             board.currentPlayerTextObject.update_message("It is " + board.currentPlayer.name + "'s turn!")
+            board.errorObject.update_message("")
         else:
             error = "That spot already has a token on it!"
             board.errorObject.update_message(error)
@@ -64,6 +65,8 @@ class Board(object):
 
         self.currentPlayer = None
         self.gameOver = False
+
+        self.play_again = MenuButton.MenuButton("Play Again?",(windowWidth/2+110,windowHeight-60),60)
 
         # do not touch these 2, they will be used in multiplayer games
         self.multiplayer = multiplayer
@@ -99,6 +102,20 @@ class Board(object):
                 pos = (self.board_rect.x + 58 + (130 * i),self.board_rect.y + 7 + (130 * j))
                 self.spots.append(BoardSpot(pos))
 
+
+        self.row1 = [self.spots[0],self.spots[3],self.spots[6]]
+        self.row2 = [self.spots[1],self.spots[4],self.spots[7]]
+        self.row3 = [self.spots[2],self.spots[5],self.spots[8]]
+
+        self.col1 = [self.spots[0],self.spots[1],self.spots[2]]
+        self.col2 = [self.spots[3],self.spots[4],self.spots[5]]
+        self.col3 = [self.spots[6],self.spots[7],self.spots[8]]
+
+        self.diag1 = [self.spots[0],self.spots[4],self.spots[8]]
+        self.diag2 = [self.spots[6],self.spots[4],self.spots[2]]
+
+        self.conditions = [self.row1,self.row2,self.row3,self.col1,self.col2,self.col3,self.diag1,self.diag2]
+
     def setplayers(self,p1,p2):
         # set the game players and randomly choose one of them to go first
         self.player1 = p1
@@ -118,7 +135,6 @@ class Board(object):
 
     def domove(self,events):
         if self.currentPlayer.type == "Human":
-            # these lines check to see if the player clicked on an empty spot to place their token at
             for i in self.spots:
                 if i.mouseOver == True:
                     for event in events:
@@ -128,40 +144,87 @@ class Board(object):
                                     i.set_token(self)
                                 else:
                                     if self.currentPlayer.name == self.username:
-                                        i.set_token(self)
-                    
+                                        i.set_token(self)        
         elif self.currentPlayer.type == "AI":
-            # this method is called if it is the computer's turn
             self.doaimove()
-        # after every move, check to see if any of the players have won, or if the game ended in a tie
         self.checkforwin()
 
-    def doaimove(self):# mtubinis will place computer AI here later on
-        for spot in self.spots:
-            if spot.token == "":
-                spot.set_token(self)
-                break
-	    else:
-                pass
-        sleep(1)
+    def doaimove(self):
+        sleep(0.5)
+
+        otherPlayer = None
+        if self.currentPlayer == self.player1:
+            otherPlayer = self.player2
+        else:
+            otherPlayer = self.player1
+
+
+        if self.spots[4].token == "":
+            self.spots[4].set_token(self)  
+        else:
+            #loop through each row/col/diag and check to see if the ai can win. 
+            #If not, then check to see if the ai can block the player's move. 
+            #If neither, try picking a corner. If not, then randomly pick a spot
+            gone = False
+            for i in self.conditions:
+                for j in i:
+                    if self.GetAmountOfMatchingTextInLine(i, self.currentPlayer.token) == 2:
+                        if j.token == "" and gone == False:
+                            j.set_token(self) 
+                            gone = True
+                            break
+            for i in self.conditions:
+                for j in i:
+                    if self.GetAmountOfMatchingTextInLine(i, otherPlayer.token) == 2:
+                        if j.token == "" and gone == False:
+                            j.set_token(self)
+                            gone = True
+                            break
+            while self.GetAmountOfFilledSpots() < len(self.spots) and gone == False:
+                randInt = random.randint(0, len(self.spots)-1)
+                if self.IsAtLeast1CornerToFill() == True:
+                    if gone == False and self.spots[randInt].token == "":
+                        if self.spots[randInt] == self.spots[0] or self.spots[randInt] == self.spots[6] or self.spots[randInt] == self.spots[2] or self.spots[randInt] == self.spots[8]:
+                            self.spots[randInt].set_token(self)
+                            gone = True
+                            break
+                else:
+                    if gone == False and self.spots[randInt].token == "":
+                        self.spots[randInt].set_token(self)
+                        gone = True
+                        break
+
+        sleep(0.5)
+
+    def IsAtLeast1CornerToFill(self):
+        for s in self.spots:
+            if s.token == "":
+                if s == self.spots[0] or s == self.spots[6] or s == self.spots[2] or s == self.spots[8]:
+                    return True
+        return False
+
+    def GetAmountOfMatchingTextInLine(self,line,token):
+        amount = 0
+        for i in line:
+            if i.token == token:
+                amount+=1
+        return amount
+    def GetAmountOfFilledSpots(self):
+        amount = 0
+        for i in self.spots:
+            if i.token != "":
+                amount+=1
+        return amount
+
+    def resetboard(self):
+        for i in self.spots:
+            i.token = ""
+        self.setplayers(self.player1,self.player2)
+        self.gameOver = False
 
     def checkforwin(self):
-
-        row1 = [self.spots[0],self.spots[3],self.spots[6]]
-        row2 = [self.spots[1],self.spots[4],self.spots[7]]
-        row3 = [self.spots[2],self.spots[5],self.spots[8]]
-
-        col1 = [self.spots[0],self.spots[1],self.spots[2]]
-        col2 = [self.spots[3],self.spots[4],self.spots[5]]
-        col3 = [self.spots[6],self.spots[7],self.spots[8]]
-
-        diag1 = [self.spots[0],self.spots[4],self.spots[8]]
-        diag2 = [self.spots[6],self.spots[4],self.spots[2]]
-
-        conditons = [row1,row2,row3,col1,col2,col3,diag1,diag2]
-        
         winner = ""
-        for i in conditons:
+        for i in self.conditions:
             count = 0
             win = True
             winningToken = "None"
@@ -188,23 +251,32 @@ class Board(object):
         if winner == "Player 1":
             self.currentPlayerTextObject.update_message(self.player1.name + " wins!")
             self.gameOver = True
+            self.errorObject.update_message("")
         elif winner == "Player 2":
             self.currentPlayerTextObject.update_message(self.player2.name + " wins!")
             self.gameOver = True
+            self.errorObject.update_message("")
         elif winner == "None":
             self.currentPlayerTextObject.update_message("The game ended in a tie!")
             self.gameOver = True
-        else:
-            pass
+            self.errorObject.update_message("")
 
     def update(self,events):
-        self.domove(events)
+        if self.gameOver == False:
+            self.domove(events)
+        else:
+            self.play_again.update()
+            if self.play_again.is_clicked(events) == True:
+                self.resetboard()
+            
         self.currentPlayerTextObject.update()
         self.errorObject.update()
         for i in self.spots:
             i.update()
 
     def draw(self, screen):
+        if self.gameOver == True:
+            self.play_again.draw(screen)
         screen.blit(self.board_image,self.board_rect)
         self.currentPlayerTextObject.draw(screen)
         self.errorObject.draw(screen)

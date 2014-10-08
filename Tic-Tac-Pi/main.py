@@ -102,7 +102,7 @@ class Program(object):
     def __init__(self):
         self.width = 800
         self.height = 500
-        self.color = 0, 200, 0
+        self.color = 126, 71, 22
 
         self.screen = pygame.display.set_mode((self.width,self.height))
         self.clock = pygame.time.Clock()
