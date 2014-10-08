@@ -68,7 +68,12 @@ class Client(object):
         try:
             if self.connected == False:
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
                 self.connection_destination = server
+                if server.lower() == "localhost":
+                    self.connection_destination = GetIp()
+
+                
                 self.username = username
 
                 client_socket.connect((self.connection_destination, 6119))

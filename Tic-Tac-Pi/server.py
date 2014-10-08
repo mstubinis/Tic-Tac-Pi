@@ -129,6 +129,12 @@ class Server():
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
                 pass
+
+            #clean up any innactive threads
+            for key,value in self.clients.iteritems():
+                if value.running == False:
+                    self.clients = removekey(self.clients,key)
+            
         self.process_thread.stop()
         self.process_thread.join()
         self.reply_thread.stop()
