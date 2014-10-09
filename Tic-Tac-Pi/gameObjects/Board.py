@@ -71,6 +71,7 @@ class Board(object):
         # do not touch these 2, they will be used in multiplayer games
         self.multiplayer = multiplayer
         self.username = username
+        self.started = False
 
         # load and position the tic-tac-toe board
         self.board_image,self.board_rect = resourceManager.load_image("board.png",-1)
@@ -79,7 +80,6 @@ class Board(object):
         # create error text object and current player text object
         self.currentPlayerTextObject = TextObject.TextObject((windowWidth/2,windowHeight-110),50,(255,255,0),"")
         self.errorObject = TextObject.TextObject((windowWidth/2,windowHeight-50),50,(255,0,0),"")
-
 
         # Here is how the board spots are indexed in the list
         #    |   |
@@ -90,11 +90,6 @@ class Board(object):
         #  2 | 5 | 8
         #    |   |
         #
-        #
-        # for example, self.spots[0] will point to the top left spot
-        #              self.spots[4] will point to the middle spot
-        #              self.spots[5] will point to the middle bottom spot
-
         # now let's actually spawn the board spots
         self.spots = []
         for i in range(3):
@@ -132,6 +127,21 @@ class Board(object):
         pass
     def setplayer2(self,p2):
         pass
+    def start_game(self):
+        self.started = True
+    def domove_multiplayer(self,events):
+        if self.started == True:
+            for i in self.spots:
+                if i.mouseOver == True:
+                    for event in events:
+                        if event.type == pygame.MOUSEBUTTONDOWN:
+                            if event.button == 1:
+                                if self.currentPlayer.name == self.username:
+                                    i.set_token(self)
+                                    #send to server board info etc...
+            self.checkforwin()
+        else:
+            self.currentPlayerTextObject.update_message("Waiting for other player to join...")
 
     def domove(self,events):
         if self.currentPlayer.type == "Human":
@@ -148,7 +158,7 @@ class Board(object):
         elif self.currentPlayer.type == "AI":
             self.doaimove()
         self.checkforwin()
-
+        
     def doaimove(self):
         sleep(0.5)
 
@@ -262,18 +272,24 @@ class Board(object):
             self.errorObject.update_message("")
 
     def update(self,events):
-        if self.gameOver == False:
-            self.domove(events)
-        else:
-            self.play_again.update()
-            if self.play_again.is_clicked(events) == True:
-                self.resetboard()
-            
         self.currentPlayerTextObject.update()
         self.errorObject.update()
         for i in self.spots:
             i.update()
-
+            
+        if self.gameOver == False:
+            if self.multiplayer == False:
+                self.domove(events)
+            else:
+                self.domove_multiplayer(events)
+        else:
+            self.play_again.update()
+            if self.play_again.is_clicked(events) == True:
+                self.resetboard()
+                if self.multiplayer == True:
+                    #send to server restart game etc...
+                    pass
+            
     def draw(self, screen):
         if self.gameOver == True:
             self.play_again.draw(screen)

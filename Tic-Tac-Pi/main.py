@@ -70,7 +70,18 @@ class Menu(object):
                 if result == True:
                     p1 = Player.Player("Human","X","Player 1")
                     p2 = Player.Player("Human","O","Player 2")
-                    program.game.setplayers(p1,p2)
+                    program.game.board = Board.Board(p1,p2,program.width,program.height,True)
+
+
+                    #get client info data from server
+                    program.client.send_message("_GETCLIENTS_" + program.client.username,self.error_message)
+
+                    #if numClients == 0 (only you):
+                    #set yourself as player1
+
+                    #else:
+                    #set connected client as player1
+                    #set yourself as player2
                     
                     self.change_state(program,"MultiPlayer")
 

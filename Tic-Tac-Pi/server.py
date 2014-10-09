@@ -1,4 +1,4 @@
-import socket,select,Queue,json
+import socket,select,Queue,json,resourceManager
 from threading import Thread
 from time import sleep
 from urllib2 import urlopen
@@ -112,6 +112,13 @@ class Server():
                 message = message[:-1]
                 message += "]\n"
                 print(message)
+            elif "_GETCLIENTS_" in data:
+                print(data)
+                message = ""
+                for key,value in self.clients.iteritems():
+                    message += str(key)+","
+                message = message[:-1]
+                self.reply_thread.add(message)
         else:
             print(data)
             self.reply_thread.add(data)
