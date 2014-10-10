@@ -4,21 +4,22 @@ import sys
 from pygame.locals import *
 pygame.init()
 
-def parse_message(message):
+def parse_message(message,typeMessage=""):
     messageList = []
     count = 0
     part = ''
     for char in message:
 
         if count != 0:
-            if char == "_" or char == "|":
-                messageList.append(part)
-                part = ''
-            else:
-                part += char
-                if count == len(message) - 1:
+            if count > len(typeMessage)-1:
+                if char == "_" or char == "|":
                     messageList.append(part)
                     part = ''
+                else:
+                    part += char
+                    if count == len(message) - 1:
+                        messageList.append(part)
+                        part = ''
         count += 1
             
     return messageList

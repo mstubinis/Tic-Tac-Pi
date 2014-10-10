@@ -37,12 +37,13 @@ class TextObject(pygame.sprite.Sprite):
 
     def update_message(self,message):
         self.message = message
-        self.text = self.font.render(self.message, 1,self.color)
-        self.rect.w = self.font.size(self.message)[0]
-        self.rect.h = self.font.size(self.message)[1]
+        self.text = self.font.render(message, 1,self.color)
+        self.rect.w = self.font.size(message)[0]
+        self.rect.h = self.font.size(message)[1]
         self.rect.midtop = self.position
 
     def update(self):
         pass
+    
     def draw(self,screen):
         screen.blit(self.text, self.rect)

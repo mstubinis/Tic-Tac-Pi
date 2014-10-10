@@ -25,15 +25,11 @@ class BoardSpot(pygame.sprite.Sprite):
             return False
         return True
 
-    def set_token(self,board):
+    def set_token(self,board,multiplayer=False):
         if self.token == "":
             self.token = board.currentPlayer.token
-            if board.currentPlayer == board.player1:
-                board.currentPlayer = board.player2
-            else:
-                board.currentPlayer = board.player1
-            board.currentPlayerTextObject.update_message("It is " + board.currentPlayer.name + "'s turn!")
-            board.errorObject.update_message("")
+            if multiplayer == False:
+                board.getnextplayer()
         else:
             error = "That spot already has a token on it!"
             board.errorObject.update_message(error)
@@ -72,6 +68,7 @@ class Board(object):
         self.multiplayer = multiplayer
         self.username = username
         self.started = False
+        self.go = False
 
         # load and position the tic-tac-toe board
         self.board_image,self.board_rect = resourceManager.load_image("board.png",-1)
@@ -111,36 +108,54 @@ class Board(object):
 
         self.conditions = [self.row1,self.row2,self.row3,self.col1,self.col2,self.col3,self.diag1,self.diag2]
 
-    def setplayers(self,p1,p2):
+    def getnextplayer(self):
+        if self.currentPlayer == self.player1:
+            self.currentPlayer = self.player2
+        elif self.currentPlayer == self.player2:
+            self.currentPlayer = self.player1
+        if self.currentPlayer.name == self.username:
+            self.go = True
+        self.currentPlayerTextObject.update_message("It is " + self.currentPlayer.name + "'s turn!")
+        self.errorObject.update_message("")
+        
+    def setplayers(self,p1,p2,setcurrent=True):
         # set the game players and randomly choose one of them to go first
         self.player1 = p1
         self.player2 = p2
-        random_int = random.randint(0,1)
-        if random_int == 0:
+        if setcurrent == True:
+            self.setcurrentplayer()
+    def setcurrentplayer(self,index):
+        if index == 0:
             self.currentPlayer = self.player1
         else:
             self.currentPlayer = self.player2
         self.currentPlayerTextObject.update_message("It is " + self.currentPlayer.name + "'s turn!")
-
-    # mtubinis will use these methods, they are for multi-player games only
-    def setplayer1(self,p1):
-        pass
-    def setplayer2(self,p2):
-        pass
+        if self.currentPlayer.name == self.username:
+            self.go = True
     def start_game(self):
         self.started = True
-    def domove_multiplayer(self,events):
+        self.currentPlayerTextObject.update_message("Both players are here!")
+        sleep(1)
+        self.currentPlayerTextObject.update_message("It is " + self.currentPlayer.name + "'s turn!")
+    def domove_multiplayer(self,events,client):
         if self.started == True:
             for i in self.spots:
                 if i.mouseOver == True:
                     for event in events:
                         if event.type == pygame.MOUSEBUTTONDOWN:
                             if event.button == 1:
-                                if self.currentPlayer.name == self.username:
-                                    i.set_token(self)
-                                    #send to server board info etc...
+                                if self.currentPlayer != None and self.currentPlayer.name == self.username:
+                                    i.set_token(self,True)
+                                    boardinfo = ""
+                                    for i in self.spots:
+                                        if i.token == "":
+                                            boardinfo += "N"
+                                        else:
+                                            boardinfo += i.token.upper()
+                                    self.go = False
+                                    client.send_message("_SENDBOARDINFO_" + boardinfo)
             self.checkforwin()
-        else:
+        elif self.started == False:
             self.currentPlayerTextObject.update_message("Waiting for other player to join...")
 
     def domove(self,events):
@@ -168,9 +183,8 @@ class Board(object):
         else:
             otherPlayer = self.player1
 
-
         if self.spots[4].token == "":
-            self.spots[4].set_token(self)  
+            self.spots[4].set_token(self)
         else:
             #loop through each row/col/diag and check to see if the ai can win. 
             #If not, then check to see if the ai can block the player's move. 
@@ -203,7 +217,6 @@ class Board(object):
                         self.spots[randInt].set_token(self)
                         gone = True
                         break
-
         sleep(0.5)
 
     def IsAtLeast1CornerToFill(self):
@@ -271,7 +284,7 @@ class Board(object):
             self.gameOver = True
             self.errorObject.update_message("")
 
-    def update(self,events):
+    def update(self,events,client):
         self.currentPlayerTextObject.update()
         self.errorObject.update()
         for i in self.spots:
@@ -281,7 +294,7 @@ class Board(object):
             if self.multiplayer == False:
                 self.domove(events)
             else:
-                self.domove_multiplayer(events)
+                self.domove_multiplayer(events,client)
         else:
             self.play_again.update()
             if self.play_again.is_clicked(events) == True:

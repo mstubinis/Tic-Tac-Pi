@@ -1,4 +1,4 @@
-import socket,select,Queue,json,resourceManager
+import socket,select,Queue,json,resourceManager,random
 from threading import Thread
 from time import sleep
 from urllib2 import urlopen
@@ -25,7 +25,7 @@ class ReplyThread(Thread):
     def run(self):
         while self.running:
             if not self.q.empty():
-                value = self.q.get(block=True, timeout=1)
+                value = self.q.get(block=True, timeout=0.3)
                 self.server.broadcast(value,None)
                     
 class ProcessThread(Thread):
@@ -43,7 +43,7 @@ class ProcessThread(Thread):
     def run(self):
         while self.running:
             if not self.q.empty():
-                value = self.q.get(block=True, timeout=1)
+                value = self.q.get(block=True, timeout=0.3)
                 self.server.process(value,self.client_thread)
                 self.client_thread = None
 
@@ -96,11 +96,9 @@ class Server():
                 value.conn.send(message)
                 
     def process(self,data,client_thread):
+        print(data)
         if data[0] == "_":
-            if "_CONNECT_" in data:
-                print(data[9:] + " connected to the server!")
-                self.reply_thread.add("Welcome to the server " + data[9:] + "!")
-                
+            if "_CONNECT_" in data:        
                 address_copy = client_thread.address
                 client_thread.username = str(data[9:])
                 self.clients[str(data[9:])] = client_thread
@@ -113,16 +111,19 @@ class Server():
                 message += "]\n"
                 print(message)
             elif "_GETCLIENTS_" in data:
-                print(data)
                 message = ""
                 for key,value in self.clients.iteritems():
-                    message += str(key)+","
+                    message += str(key)+"_"
                 message = message[:-1]
-                self.reply_thread.add(message)
+                self.reply_thread.add("_SENDCLIENTS_"+message)
+            elif "_STARTMATCH_" in data:
+                index = random.randint(0,1)
+                self.reply_thread.add("_STARTMATCH_"+str(index))
+            elif "_SENDBOARDINFO_" in data:
+                self.reply_thread.add("_RECVBOARDINFO_" + data[15:])
         else:
-            print(data)
             self.reply_thread.add(data)
-        sleep(1) # emulating processing time
+        sleep(0.3) # emulating processing time
         
     def main(self):  
         while True:

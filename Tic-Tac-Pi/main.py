@@ -5,11 +5,12 @@ from gameObjects import MenuButton, TextField, TextObject, Board, Player
 class Game(object):
     def __init__(self,windowWidth,windowHeight,player1=None,player2=None):
         self.board = Board.Board(player1,player2,windowWidth,windowHeight)
+        self.board.currentPlayerTextObject.update_message("Both players are here!")
     def setplayers(self,p1,p2):
         self.board.setplayers(p1,p2)
     def update(self,program,events):
         if not "MENU" in program.state:
-            self.board.update(events)
+            self.board.update(events,program.client)
     def draw(self,program):
         if not "MENU" in program.state:
             self.board.draw(program.screen)
@@ -68,21 +69,12 @@ class Menu(object):
                 result = program.client.connect_to_server(self.error_message,self.server_text_field.message,self.username_text_field.message)
 
                 if result == True:
-                    p1 = Player.Player("Human","X","Player 1")
+                    p1 = Player.Player("Human","X",program.client.username)
                     p2 = Player.Player("Human","O","Player 2")
-                    program.game.board = Board.Board(p1,p2,program.width,program.height,True)
+                    program.game.board = Board.Board(p1,p2,program.width,program.height,True,program.client.username)
+                    program.client.set_board(program.game.board)
 
-
-                    #get client info data from server
                     program.client.send_message("_GETCLIENTS_" + program.client.username,self.error_message)
-
-                    #if numClients == 0 (only you):
-                    #set yourself as player1
-
-                    #else:
-                    #set connected client as player1
-                    #set yourself as player2
-                    
                     self.change_state(program,"MultiPlayer")
 
             elif self.back_button.is_clicked(events) == True:
@@ -120,9 +112,9 @@ class Program(object):
         
         self.state = "MENU_Menu"
         self.last_state = "MENU_Menu"
-  
-        self.menu = Menu(self.width,self.height)
+
         self.game = Game(self.width,self.height)
+        self.menu = Menu(self.width,self.height)
         self.client = client.Client()
     def update(self):
 
@@ -145,7 +137,7 @@ class Program(object):
         self.clock.tick(60)
         self.update()
         self.render()
-
+        
 if __name__ == "__main__":
     program = Program()
     while True:
