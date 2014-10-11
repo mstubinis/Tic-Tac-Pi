@@ -143,9 +143,4 @@ class Client(object):
             self.client.add(message)
       
     def update(self,errorButton,events):
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                try:
-                    self.send_message(self.username,errorButton)
-                except:
-                    pass
+        pass
