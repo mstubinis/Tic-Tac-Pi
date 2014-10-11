@@ -61,6 +61,8 @@ class ClientThreadRecieve(Thread):
                 elif "_STARTMATCH_" in data:
                     self.board.setcurrentplayer(data[12])
                     self.board.start_game()
+                elif "_RESTARTBOARD_" in data:
+                    self.board.resetboard(data[14])
                 elif "_RECVBOARDINFO_" in data:
                     count = 0
                     for i in data[15:]:

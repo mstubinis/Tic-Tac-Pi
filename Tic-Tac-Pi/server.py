@@ -121,6 +121,9 @@ class Server():
                 self.reply_thread.add("_STARTMATCH_"+str(index))
             elif "_SENDBOARDINFO_" in data:
                 self.reply_thread.add("_RECVBOARDINFO_" + data[15:])
+            elif "_RESTARTBOARD_" in data:
+                index = random.randint(0,1)
+                self.reply_thread.add("_RESTARTBOARD_"+str(index))
         else:
             self.reply_thread.add(data)
         sleep(0.3) # emulating processing time

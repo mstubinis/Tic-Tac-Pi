@@ -118,12 +118,12 @@ class Board(object):
         self.currentPlayerTextObject.update_message("It is " + self.currentPlayer.name + "'s turn!")
         self.errorObject.update_message("")
         
-    def setplayers(self,p1,p2,setcurrent=True):
+    def setplayers(self,p1,p2,setcurrent=True,currentIndex=0):
         # set the game players and randomly choose one of them to go first
         self.player1 = p1
         self.player2 = p2
         if setcurrent == True:
-            self.setcurrentplayer()
+            self.setcurrentplayer(currentIndex)
     def setcurrentplayer(self,index):
         if index == 0:
             self.currentPlayer = self.player1
@@ -239,10 +239,10 @@ class Board(object):
                 amount+=1
         return amount
 
-    def resetboard(self):
+    def resetboard(self,index=0):
         for i in self.spots:
             i.token = ""
-        self.setplayers(self.player1,self.player2)
+        self.setplayers(self.player1,self.player2,True,index)
         self.gameOver = False
 
     def checkforwin(self):
@@ -298,11 +298,10 @@ class Board(object):
         else:
             self.play_again.update()
             if self.play_again.is_clicked(events) == True:
-                self.resetboard()
                 if self.multiplayer == True:
-                    #send to server restart game etc...
-                    pass
-            
+                    client.send_message("_RESTARTBOARD_")
+                else:
+                    self.resetboard()
     def draw(self, screen):
         if self.gameOver == True:
             self.play_again.draw(screen)
